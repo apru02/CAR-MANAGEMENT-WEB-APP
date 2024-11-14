@@ -51,7 +51,7 @@ CAR-MANAGEMENT-WEB-APP/
 
 1. **Clone the Repository**: 
    ```bash
-   git clone <repository-link>
+   git clone https://github.com/apru02/CAR-MANAGEMENT-WEB-APP
    ```
 2. **Backend Setup**:
    - Navigate to the backend folder:
