@@ -1,49 +1,77 @@
-// frontend/src/components/CarList.js
-import React, { useEffect, useState } from 'react';
-import { getCars } from '../api';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import api, { setAuthToken } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 
-const CarList = () => {
+function CarList() {
+  const { authToken } = useContext(AuthContext);
   const [cars, setCars] = useState([]);
   const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCars = async () => {
-      const { data } = await getCars();
-      setCars(data);
-    };
-    fetchCars();
-  }, []);
+    if (!authToken) {
+      navigate('/login');
+    } else {
+      setAuthToken(authToken);
+      fetchCars();
+    }
+  }, [authToken]);
+
+  const fetchCars = async () => {
+    try {
+      const res = await api.get('/cars');
+      setCars(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const filteredCars = cars.filter((car) =>
-    [car.title, car.description, ...car.tags].some((field) =>
-      field.toLowerCase().includes(search.toLowerCase())
-    )
+    [car.title, car.description, ...car.tags]
+      .join(' ')
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
   return (
-    <div className="bg-white shadow-md rounded-md max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Car List</h2>
-      <input
-        placeholder="Search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-      />
-      <ul className="space-y-2">
+    <div>
+      <div className="flex justify-between mb-4">
+        <input
+          type="text"
+          placeholder="Search cars..."
+          className="border px-3 py-2 rounded w-full max-w-md"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <Link
+          to="/cars/add"
+          className="ml-4 bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Add Car
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {filteredCars.map((car) => (
-          <li key={car._id}>
+          <div key={car._id} className="border rounded p-4">
+            <img
+              src={car.images[0]}
+              alt={car.title}
+              className="w-full h-48 object-cover mb-2"
+            />
+            <h3 className="text-xl font-bold">{car.title}</h3>
+            <p className="text-gray-600">{car.description}</p>
             <Link
               to={`/cars/${car._id}`}
-              className="block bg-gray-100 p-4 rounded hover:bg-gray-200"
+              className="text-blue-600 mt-2 inline-block"
             >
-              {car.title}
+              View Details
             </Link>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
-};
+}
 
 export default CarList;

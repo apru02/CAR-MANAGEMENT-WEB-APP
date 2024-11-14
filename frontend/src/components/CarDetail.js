@@ -1,51 +1,83 @@
-// frontend/src/components/CarDetail.js
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { getCar, deleteCar } from '../api';
+import React, { useEffect, useState, useContext } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import api, { setAuthToken } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 
-const CarDetail = () => {
+function CarDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const { authToken } = useContext(AuthContext);
   const [car, setCar] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCar = async () => {
-      const { data } = await getCar(id);
-      setCar(data);
-    };
-    fetchCar();
-  }, [id]);
+    if (!authToken) {
+      navigate('/login');
+    } else {
+      setAuthToken(authToken);
+      fetchCar();
+    }
+  }, [authToken]);
 
-  const handleDelete = async () => {
-    await deleteCar(id);
-    navigate('/cars');
+  const fetchCar = async () => {
+    try {
+      const res = await api.get(`/cars/${id}`);
+      setCar(res.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  return car ? (
-    <div className="bg-white shadow-md rounded-md max-w-md mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">{car.title}</h2>
-      <p>{car.description}</p>
-      <div className="grid grid-cols-3 gap-4 mt-4">
-        {car.images.map((img, idx) => (
-          <img key={idx} src={img} alt={`car-${idx}`} className="w-full h-auto" />
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/cars/${id}`);
+      navigate('/');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (!car) return <div>Loading...</div>;
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-4">
+        {car.images.map((image, idx) => (
+          <img
+            key={idx}
+            src={image}
+            alt={`${car.title} ${idx + 1}`}
+            className="w-full h-64 object-cover mb-2"
+          />
         ))}
       </div>
-      <div className="flex justify-end space-x-2 mt-4">
-        <button
-          onClick={() => navigate(`/cars/edit/${id}`)}
-          className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <h2 className="text-3xl font-bold mb-2">{car.title}</h2>
+      <p className="text-gray-600 mb-4">{car.description}</p>
+      <div className="mb-4">
+        {car.tags.map((tag, idx) => (
+          <span
+            key={idx}
+            className="inline-block bg-gray-200 text-gray-700 px-3 py-1 rounded-full mr-2"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+      <div className="flex">
+        <Link
+          to={`/cars/edit/${car._id}`}
+          className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
         >
           Edit
-        </button>
+        </Link>
         <button
           onClick={handleDelete}
-          className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="bg-red-500 text-white px-4 py-2 rounded"
         >
           Delete
         </button>
       </div>
     </div>
-  ) : null;
-};
+  );
+}
 
 export default CarDetail;

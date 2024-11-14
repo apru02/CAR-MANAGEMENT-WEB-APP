@@ -1,81 +1,78 @@
-import React, { useState } from "react";
-import { signup } from "../api";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import api from '../services/api';
+import { useNavigate, Link } from 'react-router-dom';
 
-const Signup = () => {
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+function Signup() {
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
     try {
-      await signup(form);
-      navigate("/");
+      const res = await api.post('/auth/create-user', {
+        name,
+        email,
+        password,
+      });
+      if (res.data.success) {
+        login(res.data.authToken);
+        navigate('/');
+      }
     } catch (error) {
-      console.error(error);
+      alert('Error creating account');
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="bg-white shadow-md rounded-md max-w-md w-full p-8">
-        <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="max-w-md mx-auto p-4 bg-white shadow rounded">
+      <h2 className="text-2xl font-bold mb-4">Sign Up</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label className="block mb-1">Name:</label>
           <input
-            name="name"
-            placeholder="Name"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="text"
+            className="w-full border px-3 py-2 rounded"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
           />
-          <input
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirm Password"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-3 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Sign Up
-          </button>
-        </form>
-        <div className="mt-4 text-center">
-          <p>
-            Already have an account?{" "}
-            <Link to="/login" className="text-blue-500 hover:underline">
-              Login
-            </Link>
-          </p>
         </div>
-      </div>
+        <div className="mb-4">
+          <label className="block mb-1">Email:</label>
+          <input
+            type="email"
+            className="w-full border px-3 py-2 rounded"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block mb-1">Password:</label>
+          <input
+            type="password"
+            className="w-full border px-3 py-2 rounded"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button className="w-full bg-green-600 text-white py-2 rounded">
+          Sign Up
+        </button>
+        <p className="mt-4 text-center">
+          Already have an account?{' '}
+          <Link to="/login" className="text-blue-600">
+            Login
+          </Link>
+        </p>
+      </form>
     </div>
   );
-};
+}
 
 export default Signup;
