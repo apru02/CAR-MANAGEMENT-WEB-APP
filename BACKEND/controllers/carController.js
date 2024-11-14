@@ -4,6 +4,7 @@ const Car = require('../models/Car');
 exports.createCar = async (req, res) => {
   try {
     const { title, description, tags, images } = req.body;
+    console.log(req.body);
     const car = new Car({
       user: req.user.id,
       title,
