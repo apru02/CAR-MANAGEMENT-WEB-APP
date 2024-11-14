@@ -1,21 +1,26 @@
 // frontend/src/components/AddCar.js
-import React, { useState } from 'react';
-import { createCar } from '../api';
-
+import React, { useState } from "react";
+import { createCar } from "../api";
+import { useNavigate } from "react-router-dom";
 const AddCar = () => {
-  const [form, setForm] = useState({ title: '', description: '', tags: [], images: [] });
-
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    tags: [],
+    images: [],
+  });
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('title', form.title);
-    formData.append('description', form.description);
-    form.images.forEach((img) => formData.append('images', img));
-    form.tags.forEach((tag) => formData.append('tags', tag));
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    form.images.forEach((img) => formData.append("images", img));
+    form.tags.forEach((tag) => formData.append("tags", tag));
 
     try {
       await createCar(formData);
-      window.location = '/cars';
+      navigate("/");
     } catch (error) {
       console.error(error);
     }
@@ -48,8 +53,10 @@ const AddCar = () => {
         <input
           name="tags"
           placeholder="Tags (comma separated)"
-          value={form.tags.join(',')}
-          onChange={(e) => setForm({ ...form, tags: e.target.value.split(',') })}
+          value={form.tags.join(",")}
+          onChange={(e) =>
+            setForm({ ...form, tags: e.target.value.split(",") })
+          }
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
