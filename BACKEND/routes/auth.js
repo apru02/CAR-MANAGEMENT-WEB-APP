@@ -111,6 +111,23 @@ router.post(
   }
 );
 
+// get user details from auth token
+router.post("/getuser", async (req, res) => {
+  try {
+    const token = req.header("auth-token");
+    if (!token) {
+      return res.status(401).send("Please login first");
+    }
+
+    const data = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(data.user.id).select("-password");
+    res.json(user);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal server error");
+  }
+});
+
 /**
  * @swagger
  * tags:
@@ -167,7 +184,6 @@ router.post(
  *         description: Internal server error
  */
 
-
 /**
  * @swagger
  * /login:
@@ -211,7 +227,5 @@ router.post(
  *       500:
  *         description: Internal server error
  */
-
-
 
 module.exports = router;
